@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mini Militia Clone</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Matter.js for physics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Canvas will be injected here by Matter.js -->
+    </div>
+
+    <!-- UI Overlays -->
+    <div id="ui-layer">
+        <!-- Main Menu / Avatar View -->
+        <div id="avatar-view" class="view active">
+            <h2>Avatar Customization</h2>
+            <!-- Avatar menus here -->
+            <button id="btn-arsenal">Go to Arsenal</button>
+            <button id="btn-play">Play Game</button>
+        </div>
+
+        <!-- Arsenal View -->
+        <div id="arsenal-view" class="view">
+            <h2>Arsenal</h2>
+            <div class="arsenal-grid">
+                <!-- Weapon slots here -->
+            </div>
+            <button id="btn-back-avatar">&#8592; Back</button>
+        </div>
+
+        <!-- HUD: Stat bars (Health, Jetpack fuel) -->
+        <div id="hud-view" class="view hidden">
+            <div class="stat-bar health-bar">
+                <div class="fill health-fill" style="width: 100%;"></div>
+            </div>
+            <div class="stat-bar jetpack-bar">
+                <div class="fill jetpack-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script type="module" src="/src/game.js"></script>
+</body>
+</html>
