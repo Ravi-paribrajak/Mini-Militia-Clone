@@ -14,8 +14,8 @@ export default class Enemy {
             render: {
                 sprite: {
                     texture: '/src/assets/avatar-08.png',
-                    xScale: 1,
-                    yScale: 1
+                    xScale: 0.15,
+                    yScale: 0.15
                 }
             }
         });

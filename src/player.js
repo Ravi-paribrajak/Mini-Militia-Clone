@@ -27,8 +27,8 @@ class Player {
             render: {
                 sprite: {
                     texture: '/src/assets/avatar-01.png',
-                    xScale: 1,
-                    yScale: 1
+                    xScale: 0.15,
+                    yScale: 0.15
                 }
             }
         });

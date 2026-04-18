@@ -71,6 +71,19 @@ class Game {
         const h = window.innerHeight;
         const worldWidth = w * 4;
 
+        // Map background sprite (rendered behind everything)
+        const mapBg = Bodies.rectangle(worldWidth / 2, h / 2, worldWidth, h * 2, {
+            isStatic: true,
+            isSensor: true,
+            render: {
+                sprite: {
+                    texture: '/src/assets/mini-outspot-map.webp',
+                    xScale: 2,
+                    yScale: 2
+                }
+            }
+        });
+
         // A floor that spans the width but has a gap in the center
         const gapWidth = 200;
         const floorWidth = (worldWidth - gapWidth) / 2;
@@ -92,7 +105,7 @@ class Game {
         const leftWall = Bodies.rectangle(-50, h / 2, 100, h, { isStatic: true, render: { visible: false } });
         const rightWall = Bodies.rectangle(worldWidth + 50, h / 2, 100, h, { isStatic: true, render: { visible: false } });
 
-        Composite.add(this.world, [floorLeft, floorRight, leftBase, rightBase, centerBridge, highCover, ceiling, leftWall, rightWall]);
+        Composite.add(this.world, [mapBg, floorLeft, floorRight, leftBase, rightBase, centerBridge, highCover, ceiling, leftWall, rightWall]);
     }
 
     handleResize() {
@@ -214,9 +227,11 @@ class Game {
                 camY = maxCamY;
             }
 
+            const zoom = 1.5;
+
             Render.lookAt(this.render, {
-                min: { x: camX - (window.innerWidth / 2), y: camY - (window.innerHeight / 2) },
-                max: { x: camX + (window.innerWidth / 2), y: camY + (window.innerHeight / 2) }
+                min: { x: camX - (window.innerWidth / 2 / zoom), y: camY - (window.innerHeight / 2 / zoom) },
+                max: { x: camX + (window.innerWidth / 2 / zoom), y: camY + (window.innerHeight / 2 / zoom) }
             });
         }
     }
