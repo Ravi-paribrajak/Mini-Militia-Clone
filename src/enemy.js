@@ -10,6 +10,7 @@ export default class Enemy {
             frictionAir: 0.05,
             friction: 0.5,
             density: 0.002,
+            inertia: Infinity,
             render: {
                 sprite: {
                     texture: '/src/assets/avatar-08.png',
@@ -54,6 +55,8 @@ export default class Enemy {
         if (distance < 400) {
             this.shoot();
         }
+
+        Matter.Body.setAngle(this.body, this.body.velocity.x * 0.04);
     }
 
     shoot() {

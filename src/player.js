@@ -23,6 +23,7 @@ class Player {
             frictionAir: 0.05, // Air resistance
             friction: 0.5,
             density: 0.002,
+            inertia: Infinity,
             render: {
                 sprite: {
                     texture: '/src/assets/avatar-01.png',
@@ -112,6 +113,7 @@ class Player {
         this.handleJetpackThrust();
         this.handleHorizontalMovement();
         this.updateHUD();
+        Matter.Body.setAngle(this.body, this.body.velocity.x * 0.04);
     }
 
     handleJetpackThrust() {

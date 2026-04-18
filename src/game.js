@@ -36,11 +36,6 @@ class Game {
             }
         });
 
-        // Apply map background to canvas
-        this.render.canvas.style.backgroundImage = "url('/src/assets/mini-outspot-map.webp')";
-        this.render.canvas.style.backgroundSize = 'cover';
-        this.render.canvas.style.backgroundPosition = 'center';
-
         this.setupOutpostMap();
         
         // Instantiate player
