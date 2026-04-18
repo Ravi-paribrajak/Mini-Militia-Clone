@@ -13,34 +13,53 @@
         <!-- Canvas will be injected here by Matter.js -->
     </div>
 
-    <!-- UI Overlays -->
-    <div id="ui-layer">
-        <!-- Main Menu / Avatar View -->
-        <div id="avatar-view" class="view active">
-            <h2>Avatar Customization</h2>
-            <!-- Avatar menus here -->
-            <button id="btn-arsenal">Go to Arsenal</button>
-            <button id="btn-play">Play Game</button>
-        </div>
+    <div id="score-overlay">
+        <h2 id="score-board">Kills: 0</h2>
+    </div>
 
-        <!-- Arsenal View -->
-        <div id="arsenal-view" class="view">
-            <h2>Arsenal</h2>
-            <div class="arsenal-grid">
-                <!-- Weapon slots here -->
-            </div>
-            <button id="btn-back-avatar">&#8592; Back</button>
-        </div>
+    <!-- Main Menu Screens -->
+    <div id="home-screen" class="menu-screen active">
+        <h1>MINI MILITIA</h1>
+        <button id="btn-play">Play Game</button>
+        <button id="btn-avatars">Avatars</button>
+        <button id="btn-weapons">Weapons</button>
+    </div>
 
-        <!-- HUD: Stat bars (Health, Jetpack fuel) -->
-        <div id="hud-view" class="view hidden">
-            <div class="stat-bar health-bar">
-                <div class="fill health-fill" style="width: 100%;"></div>
-            </div>
-            <div class="stat-bar jetpack-bar">
-                <div class="fill jetpack-fill" style="width: 100%;"></div>
-            </div>
+    <div id="avatar-screen" class="menu-screen">
+        <h2>Select Avatar</h2>
+        <div class="item-grid">
+            <div class="item-slot">Avatar 1</div>
+            <div class="item-slot">Avatar 2</div>
+            <div class="item-slot">Avatar 3</div>
+            <div class="item-slot">Avatar 4</div>
+            <div class="item-slot">Avatar 5</div>
+            <div class="item-slot">Avatar 6</div>
         </div>
+        <button id="btn-back-avatars">&#8592; Back</button>
+    </div>
+
+    <div id="weapon-screen" class="menu-screen">
+        <h2>Select Weapon</h2>
+        <div class="item-grid">
+            <div class="item-slot">Rifle</div>
+            <div class="item-slot">Shotgun</div>
+            <div class="item-slot">Sniper</div>
+            <div class="item-slot">SMG</div>
+            <div class="item-slot">Rocket</div>
+            <div class="item-slot">Pistol</div>
+        </div>
+        <button id="btn-back-weapons">&#8592; Back</button>
+    </div>
+
+    <!-- HUD: Stat bars (Health, Jetpack fuel, Grenades) -->
+    <div id="hud-view" class="hud hidden">
+        <div class="stat-bar health-bar">
+            <div class="fill health-fill" style="width: 100%;"></div>
+        </div>
+        <div class="stat-bar jetpack-bar">
+            <div class="fill jetpack-fill" style="width: 100%;"></div>
+        </div>
+        <div id="grenade-count">Grenades: 5</div>
     </div>
 
     <!-- Game Scripts -->

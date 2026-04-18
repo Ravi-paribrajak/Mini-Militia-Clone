@@ -1,50 +1,57 @@
 /**
  * ui.js
- * Logic for toggling between the Game, Arsenal, and Avatar DOM views.
+ * Logic for toggling between the Home, Avatar, Weapon, and Game screens.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // View Elements
-    const avatarView = document.getElementById('avatar-view');
-    const arsenalView = document.getElementById('arsenal-view');
+
+    // Screen Elements
+    const homeScreen = document.getElementById('home-screen');
+    const avatarScreen = document.getElementById('avatar-screen');
+    const weaponScreen = document.getElementById('weapon-screen');
     const hudView = document.getElementById('hud-view');
-    const gameContainerElement = document.getElementById('game-container');
 
     // Buttons
-    const btnArsenal = document.getElementById('btn-arsenal');
     const btnPlay = document.getElementById('btn-play');
-    const btnBackAvatar = document.getElementById('btn-back-avatar');
+    const btnAvatars = document.getElementById('btn-avatars');
+    const btnWeapons = document.getElementById('btn-weapons');
+    const btnBackAvatars = document.getElementById('btn-back-avatars');
+    const btnBackWeapons = document.getElementById('btn-back-weapons');
 
     // State
     let gameInstance = null;
 
-    // View Toggler Helper
-    function showView(viewToShow) {
-        document.querySelectorAll('.view').forEach(view => {
-            if (view !== hudView) { // Keep HUD hidden unless playing
-                view.classList.remove('active');
-            }
+    // Screen Toggler Helper
+    function showScreen(screenToShow) {
+        document.querySelectorAll('.menu-screen').forEach(screen => {
+            screen.classList.remove('active');
         });
-        
-        if (viewToShow) {
-            viewToShow.classList.add('active');
+
+        if (screenToShow) {
+            screenToShow.classList.add('active');
         }
     }
 
     // Event Listeners
-    btnArsenal.addEventListener('click', () => {
-        showView(arsenalView);
-        populateArsenalDummyData();
+    btnAvatars.addEventListener('click', () => {
+        showScreen(avatarScreen);
     });
 
-    btnBackAvatar.addEventListener('click', () => {
-        showView(avatarView);
+    btnWeapons.addEventListener('click', () => {
+        showScreen(weaponScreen);
+    });
+
+    btnBackAvatars.addEventListener('click', () => {
+        showScreen(homeScreen);
+    });
+
+    btnBackWeapons.addEventListener('click', () => {
+        showScreen(homeScreen);
     });
 
     btnPlay.addEventListener('click', () => {
-        showView(null); // Hide all overlay views
-        
+        showScreen(null); // Hide all menu screens
+
         // Make sure HUD is visible
         hudView.classList.remove('hidden');
 
@@ -54,16 +61,4 @@ document.addEventListener('DOMContentLoaded', () => {
             gameInstance.start();
         }
     });
-
-    function populateArsenalDummyData() {
-        // Populate the arsenal grid with some dummy slots if empty
-        const grid = document.querySelector('.arsenal-grid');
-        if (grid.children.length === 0) {
-            for (let i = 1; i <= 6; i++) {
-                const slot = document.createElement('div');
-                slot.innerHTML = `Weapon ${i}`;
-                grid.appendChild(slot);
-            }
-        }
-    }
 });

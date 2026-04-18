@@ -1,6 +1,6 @@
 import './player.js';
 import './ui.js';
-import Target from './target.js';
+import Enemy from './enemy.js';
 
 /**
  * game.js
@@ -31,10 +31,14 @@ class Game {
             options: {
                 width: window.innerWidth,
                 height: window.innerHeight,
-                wireframes: false,
-                background: 'black'
+                wireframes: false
             }
         });
+
+        // Apply map background to canvas
+        this.render.canvas.style.backgroundImage = "url('./assets/mini-outspot-map.webp')";
+        this.render.canvas.style.backgroundSize = 'cover';
+        this.render.canvas.style.backgroundPosition = 'center';
 
         this.setupOutpostMap();
         
@@ -45,6 +49,9 @@ class Game {
             const safeX = 150;
             this.player = new window.Player(this.world, safeX, 100);
         }
+
+        this.enemies = [];
+        this.kills = 0;
 
         // Handle window resize
         window.addEventListener('resize', () => this.handleResize());
@@ -61,9 +68,7 @@ class Game {
 
     setupOutpostMap() {
         const terrainStyle = {
-            fillStyle: 'transparent',
-            strokeStyle: '#39ff14',
-            lineWidth: 2
+            visible: false
         };
 
         const w = window.innerWidth;
@@ -83,7 +88,8 @@ class Game {
         const centerBridge = Bodies.rectangle(worldWidth / 2, h - 150, 300, 20, { isStatic: true, render: terrainStyle });
         const highCover = Bodies.rectangle(worldWidth / 2, h - 450, 200, 20, { isStatic: true, render: terrainStyle });
 
-        this.target = new Target(this.world, worldWidth / 2, h - 190);
+        // Store world width for spawning
+        this._worldWidth = worldWidth;
 
         // Invisible walls to keep the player inside.
         const ceiling = Bodies.rectangle(worldWidth / 2, -100, worldWidth * 2, 200, { isStatic: true });
@@ -108,26 +114,48 @@ class Game {
                 const bodyA = pair.bodyA;
                 const bodyB = pair.bodyB;
                 
-                const isBulletHitTarget = (bodyA.label === 'bullet' && bodyB.label === 'target') || 
-                                          (bodyB.label === 'bullet' && bodyA.label === 'target');
+                // Player bullet hits enemy
+                const isBulletHitEnemy = (bodyA.label === 'bullet' && bodyB.label === 'enemy') || 
+                                         (bodyB.label === 'bullet' && bodyA.label === 'enemy');
 
-                if (isBulletHitTarget) {
+                // Enemy bullet hits player
+                const isEnemyBulletHitPlayer = (bodyA.label === 'enemyBullet' && bodyB.label === 'Rectangle Body') || 
+                                               (bodyB.label === 'enemyBullet' && bodyA.label === 'Rectangle Body');
+
+                if (isBulletHitEnemy) {
                     const bullet = bodyA.label === 'bullet' ? bodyA : bodyB;
-                    const targetBody = bodyA.label === 'target' ? bodyA : bodyB;
+                    const enemyBody = bodyA.label === 'enemy' ? bodyA : bodyB;
                     
                     Matter.Composite.remove(this.world, bullet);
                     
-                    if (targetBody.targetInstance) {
-                        targetBody.targetInstance.takeDamage(25);
-                        if (targetBody.targetInstance.health <= 0) {
-                            Matter.Composite.remove(this.world, targetBody);
-                            this.triggerExplosion(targetBody.position.x, targetBody.position.y);
-                            targetBody.targetInstance = null; // Prevent multi-triggers
+                    if (enemyBody.enemyInstance) {
+                        enemyBody.enemyInstance.takeDamage(25);
+                        if (enemyBody.enemyInstance.health <= 0) {
+                            this.triggerExplosion(enemyBody.position.x, enemyBody.position.y);
+                            Matter.Composite.remove(this.world, enemyBody);
+                            this.enemies = this.enemies.filter(e => e !== enemyBody.enemyInstance);
+                            this.kills++;
+                            document.getElementById('score-board').innerText = 'Kills: ' + this.kills;
+                        }
+                    }
+                } else if (isEnemyBulletHitPlayer) {
+                    const enemyBullet = bodyA.label === 'enemyBullet' ? bodyA : bodyB;
+                    Matter.Composite.remove(this.world, enemyBullet);
+                    
+                    if (this.player) {
+                        this.player.takeDamage(10);
+                        if (this.player.health <= 0 && !this.player.isDead) {
+                            this.player.isDead = true;
+                            this.triggerExplosion(this.player.body.position.x, this.player.body.position.y);
+                            Matter.Composite.remove(this.world, this.player.body);
+                            setTimeout(() => { alert("GAME OVER! Refresh to respawn."); }, 1000);
                         }
                     }
                 } else {
                     if (bodyA.label === 'bullet') Matter.Composite.remove(this.world, bodyA);
                     if (bodyB.label === 'bullet') Matter.Composite.remove(this.world, bodyB);
+                    if (bodyA.label === 'enemyBullet') Matter.Composite.remove(this.world, bodyA);
+                    if (bodyB.label === 'enemyBullet') Matter.Composite.remove(this.world, bodyB);
                 }
             });
         });
@@ -136,8 +164,19 @@ class Game {
         const runner = Runner.create();
         Runner.run(runner, this.engine);
 
+        // Spawn enemies every 3 seconds
+        setInterval(() => {
+            if (this.player && !this.player.isDead) this.spawnEnemy();
+        }, 3000);
+
         // Start custom game loop if needed for physics updates and input
         this.gameLoop();
+    }
+
+    spawnEnemy() {
+        const x = Math.random() > 0.5 ? 400 : this._worldWidth - 400;
+        const newEnemy = new Enemy(this.world, x, window.innerHeight - 300, this.player);
+        this.enemies.push(newEnemy);
     }
 
     triggerExplosion(x, y) {
@@ -162,7 +201,11 @@ class Game {
     gameLoop() {
         requestAnimationFrame(() => this.gameLoop());
         
-        if (this.player) {
+        this.enemies.forEach(enemy => {
+            if (enemy.health > 0) enemy.update();
+        });
+
+        if (this.player && !this.player.isDead) {
             this.player.update();
             
             let camX = this.player.body.position.x;
