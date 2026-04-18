@@ -25,7 +25,7 @@ class Player {
             density: 0.002,
             render: {
                 sprite: {
-                    texture: './assets/avatar-01.png',
+                    texture: '/src/assets/avatar-01.png',
                     xScale: 1,
                     yScale: 1
                 }

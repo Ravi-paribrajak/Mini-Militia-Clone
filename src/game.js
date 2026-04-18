@@ -26,17 +26,18 @@ class Game {
 
         // Setup renderer
         this.render = Render.create({
-            element: document.body,
+            element: document.getElementById('game-container'),
             engine: this.engine,
             options: {
                 width: window.innerWidth,
                 height: window.innerHeight,
-                wireframes: false
+                wireframes: false,
+                background: 'transparent'
             }
         });
 
         // Apply map background to canvas
-        this.render.canvas.style.backgroundImage = "url('./assets/mini-outspot-map.webp')";
+        this.render.canvas.style.backgroundImage = "url('/src/assets/mini-outspot-map.webp')";
         this.render.canvas.style.backgroundSize = 'cover';
         this.render.canvas.style.backgroundPosition = 'center';
 
