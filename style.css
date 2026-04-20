@@ -423,4 +423,165 @@ button:active {
     color: #39ff14;
     text-shadow: 2px 2px 2px #000;
     z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Remove stale old grenade-count from HUD — now a separate UI widget */
+#ammo-count {
+    background: rgba(10, 15, 10, 0.7);
+    padding: 5px 15px;
+    border: 2px solid #4a5d23;
+    border-radius: 5px;
+    display: inline-block;
+    pointer-events: auto;
+}
+
+/* Grenade Widget — Bottom Left, graphical icon */
+.grenade-slot {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 72px;
+    height: 72px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 3px solid #4a5d23;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    pointer-events: auto;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.grenade-slot:hover {
+    border-color: #8fbc8f;
+    box-shadow: 0 0 10px rgba(57,255,20,0.4);
+}
+
+.grenade-icon {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+}
+
+.grenade-counter {
+    position: absolute;
+    bottom: 2px;
+    right: 6px;
+    background: #cc0000;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    pointer-events: none;
+}
+
+/* Active grenade mode — neon green pulse */
+.active-grenade-mode {
+    border-color: #39ff14 !important;
+    background: rgba(57, 255, 20, 0.25) !important;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.9);
+    animation: grenade-pulse 0.6s infinite alternate;
+}
+
+@keyframes grenade-pulse {
+    from { box-shadow: 0 0 12px rgba(57,255,20,0.6); }
+    to   { box-shadow: 0 0 28px rgba(57,255,20,1.0); }
+}
+
+/* Weapon Inventory HUD */
+.hud-bottom-center {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(10, 15, 10, 0.8);
+    border: 2px solid #4a5d23;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    pointer-events: auto; /* allow clicking the weapons */
+}
+
+.inventory-slot {
+    width: 60px;
+    height: 60px;
+    background: #222;
+    border: 2px solid #333;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.inventory-slot img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+    filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.8));
+}
+
+.inventory-slot.active {
+    border-color: #39ff14;
+    background: rgba(57, 255, 20, 0.2);
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    transform: scale(1.1);
+}
+
+.hotkey-label {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background: #444;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid #666;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Weapon Pickup Popup — true center of screen */
+#weapon-pickup-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.92);
+    border: 3px solid #ffaa00;
+    padding: 20px 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 1.3rem;
+    color: #ffaa00;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: auto;
+    z-index: 200;
+    box-shadow: 0 0 30px rgba(255, 170, 0, 0.5);
+}
+
+#weapon-pickup-popup button {
+    margin: 0;
+    padding: 8px 15px;
+    font-size: 1rem;
+    width: auto;
 }

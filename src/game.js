@@ -38,6 +38,8 @@ class Game {
         });
 
         this.setupOutpostMap();
+        this.setupWeaponSpawns();
+        this.activePickupBody = null;
         
         if (window.Player) {
             // Spawn player safely in the sky
@@ -51,14 +53,12 @@ class Game {
         window.addEventListener('resize', () => this.handleResize());
 
         // Handle aiming and shooting
+        this.isMouseDown = false;
         window.addEventListener('mousedown', (e) => {
-            if (this.player && this.render.bounds) {
-                const boundsWidth = this.render.bounds.max.x - this.render.bounds.min.x;
-                const boundsHeight = this.render.bounds.max.y - this.render.bounds.min.y;
-                const worldX = this.render.bounds.min.x + (e.clientX / window.innerWidth) * boundsWidth;
-                const worldY = this.render.bounds.min.y + (e.clientY / window.innerHeight) * boundsHeight;
-                this.player.shoot(worldX, worldY);
-            }
+            if (e.button === 0) this.isMouseDown = true;
+        });
+        window.addEventListener('mouseup', (e) => {
+            if (e.button === 0) this.isMouseDown = false;
         });
 
         // Track raw screen mouse position
@@ -68,6 +68,63 @@ class Game {
             this.mouseX = e.clientX;
             this.mouseY = e.clientY;
         });
+
+        // Weapon Collect Logic
+        document.getElementById('btn-collect-weapon').addEventListener('click', () => {
+            this.handleWeaponPickup();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E')) {
+                this.handleWeaponPickup();
+            }
+        });
+    }
+
+    setupWeaponSpawns() {
+        this.spawnWeaponPickup(500, 120, 'shotgun');
+        this.spawnWeaponPickup(1000, 180, 'sniper');
+        this.spawnWeaponPickup(1400, 150, 'uzi');
+        this.spawnWeaponPickup(2600, 150, 'mp5');
+    }
+
+    spawnWeaponPickup(x, y, weaponName) {
+        // Dynamically drop onto terrain
+        const pickup = Bodies.rectangle(x, y, 40, 15, {
+            isStatic: false,
+            isSensor: false,
+            frictionAir: 0.05,
+            restitution: 0.15,
+            friction: 0.8,
+            // category 0x0002, mask: everything EXCEPT 0x0004 (bullet category)
+            collisionFilter: { category: 0x0002, mask: 0x0001 | 0x0002 | 0xFFFF },
+            label: 'weaponPickup',
+            weaponData: weaponName,
+            render: {
+                sprite: {
+                    texture: `/src/assets/${weaponName}.webp`,
+                    xScale: 0.3,
+                    yScale: 0.3
+                }
+            }
+        });
+        
+        Matter.Body.setInertia(pickup, Infinity); // Keep perfectly flat
+        Composite.add(this.world, pickup);
+    }
+
+    handleWeaponPickup() {
+        if (!this.activePickupBody || !this.player || this.player.isDead) return;
+        
+        const weaponName = this.activePickupBody.weaponData;
+        this.player.pickupWeapon(weaponName);
+        
+        // Remove from world
+        Matter.Composite.remove(this.world, this.activePickupBody);
+        
+        // Reset state
+        this.activePickupBody = null;
+        document.getElementById('weapon-pickup-popup').classList.add('hidden');
     }
 
  setupOutpostMap() {
@@ -273,6 +330,48 @@ class Game {
 
     start() {
         Render.run(this.render);
+
+        // Render Grenade Trajectory
+        Events.on(this.render, 'afterRender', () => {
+            if (this.player && this.player.isGrenadeMode && !this.player.isDead) {
+                const ctx = this.render.context;
+                
+                // We need to calculate the exact world mouse position right now:
+                const boundsWidth = this.render.bounds.max.x - this.render.bounds.min.x;
+                const boundsHeight = this.render.bounds.max.y - this.render.bounds.min.y;
+                const worldObjTargetX = this.render.bounds.min.x + (this.mouseX / window.innerWidth) * boundsWidth;
+                const worldObjTargetY = this.render.bounds.min.y + (this.mouseY / window.innerHeight) * boundsHeight;
+                
+                const angle = Math.atan2(worldObjTargetY - this.player.body.position.y, worldObjTargetX - this.player.body.position.x);
+
+                const spawnDist = 30;
+                let simX = this.player.body.position.x + Math.cos(angle) * spawnDist;
+                let simY = this.player.body.position.y + Math.sin(angle) * spawnDist;
+                
+                let vx = Math.cos(angle) * 15 + this.player.body.velocity.x;
+                let vy = Math.sin(angle) * 15 + Math.min(0, this.player.body.velocity.y);
+
+                ctx.beginPath();
+                ctx.moveTo(simX, simY);
+                
+                // Simulate 40 future physics frames for the arc
+                for (let i = 0; i < 40; i++) {
+                    vy += this.engine.gravity.y * this.engine.gravity.scale * 16.666;
+                    vx *= (1 - 0.015); // simulate frictionAir 0.015
+                    vy *= (1 - 0.015);
+                    simX += vx;
+                    simY += vy;
+                    ctx.lineTo(simX, simY);
+                }
+                
+                // Draw dotted arc
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = "rgba(57, 255, 20, 0.8)"; // Neon green
+                ctx.setLineDash([8, 8]); 
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset
+            }
+        });
         
         Events.on(this.engine, 'collisionStart', (event) => {
             event.pairs.forEach((pair) => {
@@ -281,6 +380,18 @@ class Game {
 
                 // Skip collisions with the background sprite
                 if (bodyA.label === 'background' || bodyB.label === 'background') return;
+
+                // --- WEAPON PICKUP COLLISIONS ---
+                const isPickupCollision = (bodyA.label === 'Rectangle Body' && bodyB.label === 'weaponPickup') || 
+                                          (bodyB.label === 'Rectangle Body' && bodyA.label === 'weaponPickup');
+                if (isPickupCollision && this.player && !this.player.isDead) {
+                    const pickupBody = bodyA.label === 'weaponPickup' ? bodyA : bodyB;
+                    this.activePickupBody = pickupBody;
+                    
+                    document.getElementById('pickup-weapon-name').innerText = pickupBody.weaponData.toUpperCase();
+                    document.getElementById('weapon-pickup-popup').classList.remove('hidden');
+                }
+
                 // Player bullet hits enemy
                 const isBulletHitEnemy = (bodyA.label === 'bullet' && bodyB.label === 'enemy') || 
                                          (bodyB.label === 'bullet' && bodyA.label === 'enemy');
@@ -329,6 +440,21 @@ class Game {
             });
         });
 
+        // Handle leaving weapon pickup areas
+        Events.on(this.engine, 'collisionEnd', (event) => {
+            event.pairs.forEach((pair) => {
+                const isPickupCollision = (pair.bodyA.label === 'Rectangle Body' && pair.bodyB.label === 'weaponPickup') || 
+                                          (pair.bodyB.label === 'Rectangle Body' && pair.bodyA.label === 'weaponPickup');
+                if (isPickupCollision) {
+                    const pickupBody = pair.bodyA.label === 'weaponPickup' ? pair.bodyA : pair.bodyB;
+                    if (this.activePickupBody === pickupBody) {
+                        this.activePickupBody = null;
+                        document.getElementById('weapon-pickup-popup').classList.add('hidden');
+                    }
+                }
+            });
+        });
+
         // Create runner
         const runner = Runner.create();
         Runner.run(runner, this.engine);
@@ -340,6 +466,30 @@ class Game {
 
         // Start custom game loop if needed for physics updates and input
         this.gameLoop();
+
+        // Pass explosion trigger strictly into player callback
+        if (this.player) {
+            this.player.onExplode = (x, y) => {
+                this.triggerExplosion(x, y);
+                // Mini Militia grenades deal MASSIVE radius damage
+                const blastRadius = 150;
+                this.enemies.forEach(enemy => {
+                    const dx = enemy.body.position.x - x;
+                    const dy = enemy.body.position.y - y;
+                    if (Math.sqrt(dx*dx + dy*dy) < blastRadius) {
+                        enemy.takeDamage(100); // Insta-kill bots near blast
+                    }
+                });
+                
+                const pdx = this.player.body.position.x - x;
+                const pdy = this.player.body.position.y - y;
+                if (Math.sqrt(pdx*pdx + pdy*pdy) < blastRadius) {
+                    this.player.takeDamage(50); // Massive self-damage near blast
+                    // Knockback!
+                    Matter.Body.setVelocity(this.player.body, { x: pdx * 0.1, y: pdy * 0.1 });
+                }
+            };
+        }
     }
 
     spawnEnemy() {
@@ -349,21 +499,42 @@ class Game {
     }
 
     triggerExplosion(x, y) {
-        for (let i = 0; i < 30; i++) {
-            const particle = Bodies.polygon(x, y, 3, Math.random() * 5 + 3, {
+        // --- REALISTIC MINI MILITIA EXPLOSION ---
+        
+        // 1. Central Core Flash (Bright white/yellow, fades instantly)
+        const core = Bodies.circle(x, y, 25, { isSensor: true, collisionFilter: { mask: 0 }, render: { fillStyle: '#ffffff' } });
+        Composite.add(this.world, core);
+        setTimeout(() => Composite.remove(this.world, core), 50);
+
+        // 2. Expanding Fireball Particles
+        for (let i = 0; i < 15; i++) {
+            const fire = Bodies.circle(x, y, Math.random() * 8 + 5, {
                 frictionAir: 0.05,
                 collisionFilter: { mask: 0 },
-                render: { fillStyle: Math.random() > 0.5 ? '#ff9900' : '#ffff00' }
+                render: { fillStyle: Math.random() > 0.5 ? '#ff4500' : '#ff8c00' } // Orange/Red
             });
-            Matter.Body.setVelocity(particle, {
-                x: (Math.random() * 40) - 20,
-                y: (Math.random() * 40) - 20
+            Matter.Body.setVelocity(fire, {
+                x: (Math.random() * 20) - 10,
+                y: (Math.random() * 20) - 10
             });
-            Composite.add(this.world, particle);
+            Composite.add(this.world, fire);
+            setTimeout(() => Composite.remove(this.world, fire), 150 + Math.random() * 150);
+        }
 
-            setTimeout(() => {
-                Composite.remove(this.world, particle);
-            }, 500);
+        // 3. Lingering Dark Smoke Clouds
+        for (let i = 0; i < 20; i++) {
+            const smoke = Bodies.circle(x, y, Math.random() * 15 + 10, {
+                frictionAir: 0.1, // Slows down quickly staying near impact
+                collisionFilter: { mask: 0 },
+                render: { fillStyle: '#333333', opacity: 0.8 } // Dark thick smoke
+            });
+            // Smoke moves slower than fire
+            Matter.Body.setVelocity(smoke, {
+                x: (Math.random() * 10) - 5,
+                y: (Math.random() * 10) - 5
+            });
+            Composite.add(this.world, smoke);
+            setTimeout(() => Composite.remove(this.world, smoke), 400 + Math.random() * 400); // Lasts much longer
         }
     }
 
@@ -394,6 +565,11 @@ class Game {
 
             // 2. Call player update
             this.player.update();
+
+            // 3. Continuous shooting
+            if (this.isMouseDown) {
+                this.player.shoot(this.player.targetX, this.player.targetY);
+            }
         }
     }
 }

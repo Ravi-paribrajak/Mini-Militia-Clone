@@ -59,7 +59,21 @@
             <div class="fill jetpack-fill" style="width: 100%;"></div>
         </div>
         <div id="score-board">Kills: 0</div>
-        <div id="grenade-count">Grenades: 5</div>
+        <div id="ammo-count">Ammo: 30/30</div>
+        
+        <!-- Interactive Lower Left Grenade UI -->
+        <div id="grenade-ui" class="grenade-slot">
+            <img src="/src/assets/grenade.webp" alt="Grenade" class="grenade-icon">
+            <div id="grenade-count-text" class="grenade-counter">5</div>
+        </div>
+
+        <div id="weapon-inventory-bar" class="hud-bottom-center">
+            <!-- Weapon slots inserted dynamically via JS -->
+        </div>
+
+        <div id="weapon-pickup-popup" class="hidden stencil-text">
+            Press [E] or <button id="btn-collect-weapon">Collect</button> <span id="pickup-weapon-name">Weapon</span>
+        </div>
     </div>
 
     <!-- Game Scripts -->

@@ -28,16 +28,17 @@ export default class Enemy {
 
         this.body.collisionFilter.group = -2;
 
+        // Link reference to this instance so collisions can access it
+        this.body.enemyInstance = this;
+        Matter.Composite.add(this.world, this.body);
+
+        // Add weapon AFTER body so it renders in front (Matter.js z-order = add order)
         this.weaponBody = Matter.Bodies.rectangle(x, y, 40, 15, { 
             isSensor: true, 
             collisionFilter: { mask: 0 }, 
             render: { sprite: { texture: '/src/assets/ak47.webp', xScale: 0.15, yScale: 0.15 } } 
         });
         Matter.Composite.add(this.world, this.weaponBody);
-
-        // Link reference to this instance so collisions can access it
-        this.body.enemyInstance = this;
-        Matter.Composite.add(this.world, this.body);
     }
 
     takeDamage(amount) {
@@ -180,7 +181,7 @@ export default class Enemy {
 
     shoot() {
         const now = Date.now();
-        if (this.lastShot && (now - this.lastShot < 1000)) {
+        if (this.lastShot && (now - this.lastShot < 600)) {
             return;
         }
         this.lastShot = now;
@@ -202,13 +203,13 @@ export default class Enemy {
         const bulletSpawnX = weaponPosX + Math.cos(angle) * spawnDist;
         const bulletSpawnY = weaponPosY + Math.sin(angle) * spawnDist;
 
-        const bullet = Matter.Bodies.rectangle(bulletSpawnX, bulletSpawnY, 12, 3, {
+        const bullet = Matter.Bodies.rectangle(bulletSpawnX, bulletSpawnY, 14, 4, {
             label: 'enemyBullet',
             collisionFilter: { group: -2 },
             frictionAir: 0,
             restitution: 0,
             inertia: Infinity,
-            render: { fillStyle: '#ff4444' }
+            render: { fillStyle: '#ffffff', strokeStyle: '#ff0000', lineWidth: 2 }
         });
 
         Matter.Body.setAngle(bullet, angle);
