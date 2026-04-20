@@ -4,65 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mini Militia Clone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Matter.js for physics -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/poly-decomp@0.3.0/build/decomp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
-    <div id="game-container">
-        <!-- Canvas will be injected here by Matter.js -->
-    </div>
+    <div id="game-container"></div>
 
-    <div id="score-overlay">
-        <h2 id="score-board">Kills: 0</h2>
-    </div>
+    <div id="ui-layer">
+        
+        <div id="menu-bg"></div>
 
-    <!-- Main Menu Screens -->
-    <div id="home-screen" class="menu-screen active">
-        <h1>MINI MILITIA</h1>
-        <button id="btn-play">Play Game</button>
-        <button id="btn-avatars">Avatars</button>
-        <button id="btn-weapons">Weapons</button>
-    </div>
-
-    <div id="avatar-screen" class="menu-screen">
-        <h2>Select Avatar</h2>
-        <div class="item-grid">
-            <div class="item-slot">Avatar 1</div>
-            <div class="item-slot">Avatar 2</div>
-            <div class="item-slot">Avatar 3</div>
-            <div class="item-slot">Avatar 4</div>
-            <div class="item-slot">Avatar 5</div>
-            <div class="item-slot">Avatar 6</div>
+        <div id="home-screen" class="menu-panel home-layout">
+            <div class="home-left">
+                <div class="hero-preview-container">
+                    <img id="hero-avatar-preview" src="/src/assets/avatar-01.png" alt="Soldier Profile">
+                    <div class="hero-label stencil-text">SOLDIER PROFILE</div>
+                </div>
+            </div>
+            <div class="home-right">
+                <h1 class="stencil-text">MINI OUTPOST</h1>
+                <button id="btn-play" class="action-btn stencil-text">PLAY GAME</button>
+                <div class="menu-btn-group">
+                    <button id="btn-avatars" class="menu-btn stencil-text">CHOOSE AVATAR</button>
+                    <button id="btn-weapons" class="menu-btn stencil-text">CHOOSE WEAPON</button>
+                </div>
+            </div>
         </div>
-        <button id="btn-back-avatars">&#8592; Back</button>
-    </div>
 
-    <div id="weapon-screen" class="menu-screen">
-        <h2>Select Weapon</h2>
-        <div class="item-grid">
-            <div class="item-slot">Rifle</div>
-            <div class="item-slot">Shotgun</div>
-            <div class="item-slot">Sniper</div>
-            <div class="item-slot">SMG</div>
-            <div class="item-slot">Rocket</div>
-            <div class="item-slot">Pistol</div>
+        <div id="avatar-screen" class="menu-panel hidden">
+            <h2>SELECT AVATAR</h2>
+            <div id="avatar-grid" class="selection-grid"></div>
+            <button id="btn-back-avatar" class="back-btn">BACK</button>
         </div>
-        <button id="btn-back-weapons">&#8592; Back</button>
+
+        <div id="weapon-screen" class="menu-panel hidden">
+            <h2>STARTING WEAPON</h2>
+            <div id="weapon-grid" class="selection-grid"></div>
+            <button id="btn-back-weapon" class="back-btn">BACK</button>
+        </div>
+
     </div>
 
-    <!-- HUD: Stat bars (Health, Jetpack fuel, Grenades) -->
-    <div id="hud-view" class="hud hidden">
+    <div id="game-hud" class="hidden">
         <div class="stat-bar health-bar">
             <div class="fill health-fill" style="width: 100%;"></div>
         </div>
         <div class="stat-bar jetpack-bar">
             <div class="fill jetpack-fill" style="width: 100%;"></div>
         </div>
+        <div id="score-board">Kills: 0</div>
         <div id="grenade-count">Grenades: 5</div>
     </div>
 
     <!-- Game Scripts -->
     <script type="module" src="/src/game.js"></script>
+    <script type="module" src="/src/ui.js"></script>
 </body>
 </html>
